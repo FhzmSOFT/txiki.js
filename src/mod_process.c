@@ -241,7 +241,7 @@ static JSValue tjs_spawn(JSContext *ctx, JSValue this_val, int argc, JSValue *ar
         if (!options.args[0]) {
             goto fail;
         }
-    } else if (JS_IsArray(ctx, arg0)) {
+    } else if (JS_IsArray(arg0)) {
         JSValue js_length = JS_GetPropertyStr(ctx, arg0, "length");
         uint64_t len;
         if (JS_ToIndex(ctx, &len, js_length)) {
@@ -290,14 +290,14 @@ static JSValue tjs_spawn(JSContext *ctx, JSValue this_val, int argc, JSValue *ar
             }
             options.env = js_mallocz(ctx, sizeof(*options.env) * (plen + 1));
             if (!options.env) {
-                JS_FreePropEnum(ctx, ptab, plen);
+                JS_FreePropertyEnum(ctx, ptab, plen);
                 JS_FreeValue(ctx, js_env);
                 goto fail;
             }
             for (int i = 0; i < plen; i++) {
                 JSValue prop = JS_GetProperty(ctx, js_env, ptab[i].atom);
                 if (JS_IsException(prop)) {
-                    JS_FreePropEnum(ctx, ptab, plen);
+                    JS_FreePropertyEnum(ctx, ptab, plen);
                     JS_FreeValue(ctx, js_env);
                     goto fail;
                 }
@@ -309,7 +309,7 @@ static JSValue tjs_spawn(JSContext *ctx, JSValue this_val, int argc, JSValue *ar
                 if (!options.env[i]) {
                     JS_FreeCString(ctx, key);
                     JS_FreeCString(ctx, value);
-                    JS_FreePropEnum(ctx, ptab, plen);
+                    JS_FreePropertyEnum(ctx, ptab, plen);
                     JS_FreeValue(ctx, js_env);
                     goto fail;
                 }
@@ -317,7 +317,7 @@ static JSValue tjs_spawn(JSContext *ctx, JSValue this_val, int argc, JSValue *ar
                 JS_FreeCString(ctx, key);
                 JS_FreeCString(ctx, value);
             }
-            JS_FreePropEnum(ctx, ptab, plen);
+            JS_FreePropertyEnum(ctx, ptab, plen);
         }
         JS_FreeValue(ctx, js_env);
 
@@ -515,7 +515,7 @@ static JSValue tjs_exec(JSContext *ctx, JSValue this_val, int argc, JSValue *arg
         if (!args[0]) {
             goto fail;
         }
-    } else if (JS_IsArray(ctx, arg0)) {
+    } else if (JS_IsArray(arg0)) {
         JSValue js_length = JS_GetPropertyStr(ctx, arg0, "length");
         uint64_t len;
         if (JS_ToIndex(ctx, &len, js_length)) {

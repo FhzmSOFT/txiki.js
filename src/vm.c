@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define TJS__DEFAULT_STACK_SIZE 10 * 1024 * 1024  // 10 MB
+#define TJS__DEFAULT_STACK_SIZE 1024 * 1024  // 1 MB
 
 /* JS malloc functions */
 
@@ -167,7 +167,7 @@ static JSValue tjs__dispatch_event(JSContext *ctx, JSValue *event) {
 static void tjs__promise_rejection_tracker(JSContext *ctx,
                                            JSValue promise,
                                            JSValue reason,
-                                           BOOL is_handled,
+                                           bool is_handled,
                                            void *opaque) {
     TJSRuntime *qrt = TJS_GetRuntime(ctx);
     CHECK_NOT_NULL(qrt);
@@ -350,6 +350,16 @@ void TJS_FreeRuntime(TJSRuntime *qrt) {
     JS_FreeContext(qrt->ctx);
     JS_FreeRuntime(qrt->rt);
 
+    /* Destroy CURLM handle. */
+    if (qrt->curl_ctx.curlm_h) {
+        curl_multi_cleanup(qrt->curl_ctx.curlm_h);
+        qrt->curl_ctx.curlm_h = NULL;
+    }
+
+    /* Destroy WASM runtime. */
+    m3_FreeEnvironment(qrt->wasm_ctx.env);
+    qrt->wasm_ctx.env = NULL;
+
     /* Cleanup loop. All handles should be closed. */
     int closed = 0;
     for (int i = 0; i < 5; i++) {
@@ -367,16 +377,6 @@ void TJS_FreeRuntime(TJSRuntime *qrt) {
 #else
     (void) closed;
 #endif
-
-    /* Destroy CURLM handle. */
-    if (qrt->curl_ctx.curlm_h) {
-        curl_multi_cleanup(qrt->curl_ctx.curlm_h);
-        qrt->curl_ctx.curlm_h = NULL;
-    }
-
-    /* Destroy WASM runtime. */
-    m3_FreeEnvironment(qrt->wasm_ctx.env);
-    qrt->wasm_ctx.env = NULL;
 
     tjs__free(qrt);
 }
@@ -600,7 +600,7 @@ JSValue TJS_EvalModule(JSContext *ctx, const char *filename, bool is_main) {
     /* Add null termination, required by JS_Eval. */
     dbuf_putc(&dbuf, '\0');
 
-    ret = TJS_EvalModuleContent(ctx, filename, is_main, TRUE, (char *) dbuf.buf, dbuf_size - 1);
+    ret = TJS_EvalModuleContent(ctx, filename, is_main, true, (char *) dbuf.buf, dbuf_size - 1);
 
     dbuf_free(&dbuf);
     return ret;

@@ -24,7 +24,7 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
 endif()
 
 set(TJS__VERSION_MAJOR 24)
-set(TJS__VERSION_MINOR 6)
+set(TJS__VERSION_MINOR 12)
 set(TJS__VERSION_PATCH 0)
 set(TJS__VERSION_SUFFIX "")
 configure_file(
@@ -132,7 +132,7 @@ if(NOT USE_EXTERNAL_FFI AND NOT MINGW AND NOT APPLE)
         libffi
         BUILD_IN_SOURCE 1
         SOURCE_DIR "${LIBFFI_SRC}"
-        CONFIGURE_COMMAND ./autogen.sh COMMAND ./configure --enable-static=yes --disable-shared --disable-multi-os-directory
+        CONFIGURE_COMMAND ./autogen.sh COMMAND ./configure --enable-static=yes --disable-shared --disable-docs --disable-multi-os-directory
         BUILD_COMMAND make
         INSTALL_DIR ${TMP_INSTALL_DIR}
         INSTALL_COMMAND make DESTDIR=${TMP_INSTALL_DIR} install
